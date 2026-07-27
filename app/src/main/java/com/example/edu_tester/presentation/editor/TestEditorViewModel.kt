@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.edu_tester.domain.model.Question
 import com.example.edu_tester.domain.model.Test
+import com.example.edu_tester.domain.usecase.DeleteTestUseCase
 import com.example.edu_tester.domain.usecase.GetTestUseCase
 import com.example.edu_tester.domain.usecase.SaveTestUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +27,7 @@ class TestEditorViewModel(
     private val testId: String,
     private val getTest: GetTestUseCase,
     private val saveTest: SaveTestUseCase,
+    private val deleteTest: DeleteTestUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TestEditorUiState())
@@ -145,6 +147,16 @@ class TestEditorViewModel(
             )
             _uiState.update { it.copy(isSaving = false, message = "Сохранено") }
             onSaved()
+        }
+    }
+
+    fun leave(onLeft: () -> Unit) {
+        viewModelScope.launch {
+            val existing = getTest(testId)
+            if (existing != null && existing.questions.isEmpty()) {
+                deleteTest(testId)
+            }
+            onLeft()
         }
     }
 

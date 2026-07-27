@@ -28,6 +28,7 @@ class AppViewModelFactory(
                     testId = requireNotNull(testId),
                     getTest = container.getTest,
                     saveTest = container.saveTest,
+                    deleteTest = container.deleteTest,
                 ) as T
 
             modelClass.isAssignableFrom(SessionViewModel::class.java) ->

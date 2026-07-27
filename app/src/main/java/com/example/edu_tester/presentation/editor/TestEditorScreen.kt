@@ -1,5 +1,6 @@
 package com.example.edu_tester.presentation.editor
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,12 +47,14 @@ fun TestEditorScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    BackHandler { viewModel.leave(onBack) }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Редактор теста") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(onClick = { viewModel.leave(onBack) }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 },
