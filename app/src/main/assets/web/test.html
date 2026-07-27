@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Тест</title>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <main class="card wide">
+    <h1 id="test-title">Тест</h1>
+    <p id="student-name" class="muted"></p>
+    <form id="test-form"></form>
+    <button id="submit-btn" type="button">Сдать</button>
+    <p id="error" class="error" hidden></p>
+  </main>
+
+  <main id="result-card" class="card" hidden>
+    <h1>Результат</h1>
+    <p id="result-text"></p>
+    <p class="muted">Можете закрыть страницу.</p>
+  </main>
+
+  <script src="/app.js"></script>
+  <script>
+    bootTestPage();
+  </script>
+</body>
+</html>

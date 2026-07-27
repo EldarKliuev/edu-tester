@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Вход на тест</title>
+  <link rel="stylesheet" href="/styles.css"/>
+</head>
+<body>
+  <main class="card">
+    <h1 id="test-title">Тестирование</h1>
+    <p id="test-meta" class="muted">Загрузка…</p>
+    <form id="register-form">
+      <label>
+        Имя
+        <input name="firstName" type="text" required autocomplete="given-name" maxlength="64"/>
+      </label>
+      <label>
+        Фамилия
+        <input name="lastName" type="text" required autocomplete="family-name" maxlength="64"/>
+      </label>
+      <button type="submit">Начать</button>
+      <p id="error" class="error" hidden></p>
+    </form>
+  </main>
+  <script src="/app.js"></script>
+  <script>
+    bootRegisterPage();
+  </script>
+</body>
+</html>
