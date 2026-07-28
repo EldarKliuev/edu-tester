@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.edu_tester.di.AppContainer
 import com.example.edu_tester.presentation.editor.TestEditorViewModel
+import com.example.edu_tester.presentation.history.SessionHistoryViewModel
 import com.example.edu_tester.presentation.results.ResultsViewModel
 import com.example.edu_tester.presentation.session.SessionViewModel
 import com.example.edu_tester.presentation.tests.TestListViewModel
@@ -43,6 +44,11 @@ class AppViewModelFactory(
                 ResultsViewModel(
                     sessionId = requireNotNull(sessionId),
                     observeSessionResults = container.observeSessionResults,
+                ) as T
+
+            modelClass.isAssignableFrom(SessionHistoryViewModel::class.java) ->
+                SessionHistoryViewModel(
+                    observeSessionHistory = container.observeSessionHistory,
                 ) as T
 
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")

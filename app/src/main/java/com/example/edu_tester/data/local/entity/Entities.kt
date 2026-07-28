@@ -30,3 +30,14 @@ data class AttemptEntity(
     val maxScore: Int,
     val submittedAt: Long,
 )
+
+@Entity(tableName = "sessions")
+data class SessionEntity(
+    @PrimaryKey val id: String,
+    val testId: String,
+    val testTitle: String,
+    val port: Int,
+    val startedAt: Long,
+    val endedAt: Long?,
+    val isActive: Boolean,
+)

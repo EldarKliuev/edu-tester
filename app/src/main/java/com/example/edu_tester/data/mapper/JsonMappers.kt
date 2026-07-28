@@ -2,11 +2,13 @@ package com.example.edu_tester.data.mapper
 
 import com.example.edu_tester.data.local.entity.AttemptEntity
 import com.example.edu_tester.data.local.entity.QuestionEntity
+import com.example.edu_tester.data.local.entity.SessionEntity
 import com.example.edu_tester.data.local.entity.TestEntity
 import com.example.edu_tester.domain.model.Answer
 import com.example.edu_tester.domain.model.Question
 import com.example.edu_tester.domain.model.StudentAttempt
 import com.example.edu_tester.domain.model.Test
+import com.example.edu_tester.domain.model.TestSession
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
@@ -76,5 +78,27 @@ class JsonMappers(private val gson: Gson) {
             score = attempt.score,
             maxScore = attempt.maxScore,
             submittedAt = attempt.submittedAt,
+        )
+
+    fun toDomain(session: SessionEntity): TestSession =
+        TestSession(
+            id = session.id,
+            testId = session.testId,
+            testTitle = session.testTitle,
+            port = session.port,
+            startedAt = session.startedAt,
+            endedAt = session.endedAt,
+            isActive = session.isActive,
+        )
+
+    fun toEntity(session: TestSession): SessionEntity =
+        SessionEntity(
+            id = session.id,
+            testId = session.testId,
+            testTitle = session.testTitle,
+            port = session.port,
+            startedAt = session.startedAt,
+            endedAt = session.endedAt,
+            isActive = session.isActive,
         )
 }

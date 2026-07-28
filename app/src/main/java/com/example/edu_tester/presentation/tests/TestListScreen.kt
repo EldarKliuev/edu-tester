@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -40,6 +41,7 @@ import com.example.edu_tester.domain.model.Test
 @Composable
 fun TestListScreen(
     viewModel: TestListViewModel,
+    onOpenDrawer: () -> Unit,
     onOpenEditor: (String) -> Unit,
     onStartSession: (String) -> Unit,
 ) {
@@ -79,7 +81,14 @@ fun TestListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Мои тесты") })
+            TopAppBar(
+                title = { Text("Мои тесты") },
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
+                        Icon(Icons.Default.Menu, contentDescription = "Меню")
+                    }
+                },
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = viewModel::createTest) {

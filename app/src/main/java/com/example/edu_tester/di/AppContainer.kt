@@ -6,15 +6,17 @@ import com.example.edu_tester.data.local.AppDatabase
 import com.example.edu_tester.data.mapper.JsonMappers
 import com.example.edu_tester.data.network.LanIpHelper
 import com.example.edu_tester.data.repository.AttemptRepositoryImpl
+import com.example.edu_tester.data.repository.SessionRepositoryImpl
 import com.example.edu_tester.data.repository.TestRepositoryImpl
 import com.example.edu_tester.data.server.SessionController
 import com.example.edu_tester.data.session.ActiveSessionManager
 import com.example.edu_tester.domain.repository.AttemptRepository
+import com.example.edu_tester.domain.repository.SessionRepository
 import com.example.edu_tester.domain.repository.TestRepository
 import com.example.edu_tester.domain.usecase.CreateEmptyTestUseCase
 import com.example.edu_tester.domain.usecase.DeleteTestUseCase
-import com.example.edu_tester.domain.usecase.GetSessionResultsUseCase
 import com.example.edu_tester.domain.usecase.GetTestUseCase
+import com.example.edu_tester.domain.usecase.ObserveSessionHistoryUseCase
 import com.example.edu_tester.domain.usecase.ObserveSessionResultsUseCase
 import com.example.edu_tester.domain.usecase.ObserveTestsUseCase
 import com.example.edu_tester.domain.usecase.SaveTestUseCase
@@ -32,13 +34,16 @@ class AppContainer(context: Context) {
         appContext,
         AppDatabase::class.java,
         "edu_tester.db",
-    ).build()
+    ).fallbackToDestructiveMigration(dropAllTables = true).build()
 
     val testRepository: TestRepository =
         TestRepositoryImpl(database.testDao(), jsonMappers)
 
     val attemptRepository: AttemptRepository =
         AttemptRepositoryImpl(database.attemptDao(), jsonMappers)
+
+    val sessionRepository: SessionRepository =
+        SessionRepositoryImpl(database.sessionDao(), jsonMappers)
 
     val scoreAnswers = ScoreAnswersUseCase()
     val submitStudentAttempt = SubmitStudentAttemptUseCase(attemptRepository, scoreAnswers)
@@ -53,5 +58,5 @@ class AppContainer(context: Context) {
     val deleteTest = DeleteTestUseCase(testRepository)
     val createEmptyTest = CreateEmptyTestUseCase(testRepository)
     val observeSessionResults = ObserveSessionResultsUseCase(attemptRepository)
-    val getSessionResults = GetSessionResultsUseCase(attemptRepository)
+    val observeSessionHistory = ObserveSessionHistoryUseCase(sessionRepository)
 }
