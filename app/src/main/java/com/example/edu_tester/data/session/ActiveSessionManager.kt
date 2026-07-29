@@ -6,8 +6,6 @@ import com.example.edu_tester.domain.model.Test
 import com.example.edu_tester.domain.model.TestSession
 import com.example.edu_tester.domain.usecase.SubmitStudentAttemptUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -30,7 +28,6 @@ class ActiveSessionManager(
     private val submitStudentAttempt: SubmitStudentAttemptUseCase,
 ) {
     private val _state = MutableStateFlow<ActiveSessionState?>(null)
-    val state: StateFlow<ActiveSessionState?> = _state.asStateFlow()
 
     private val students = ConcurrentHashMap<String, RegisteredStudent>()
     private val submittedTokens = ConcurrentHashMap.newKeySet<String>()
@@ -45,6 +42,7 @@ class ActiveSessionManager(
         val session = TestSession(
             id = UUID.randomUUID().toString(),
             testId = test.id,
+            testTitle = test.title,
             port = port,
             startedAt = System.currentTimeMillis(),
             isActive = true,

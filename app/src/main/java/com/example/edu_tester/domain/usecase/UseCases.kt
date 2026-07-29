@@ -5,6 +5,7 @@ import com.example.edu_tester.domain.model.Question
 import com.example.edu_tester.domain.model.StudentAttempt
 import com.example.edu_tester.domain.model.Test
 import com.example.edu_tester.domain.repository.AttemptRepository
+import com.example.edu_tester.domain.repository.SessionRepository
 import com.example.edu_tester.domain.repository.TestRepository
 import java.util.UUID
 
@@ -100,8 +101,8 @@ class ObserveSessionResultsUseCase(
     operator fun invoke(sessionId: String) = attemptRepository.observeAttempts(sessionId)
 }
 
-class GetSessionResultsUseCase(
-    private val attemptRepository: AttemptRepository,
+class ObserveSessionHistoryUseCase(
+    private val sessionRepository: SessionRepository,
 ) {
-    suspend operator fun invoke(sessionId: String) = attemptRepository.getAttempts(sessionId)
+    operator fun invoke() = sessionRepository.observeSessionHistory()
 }

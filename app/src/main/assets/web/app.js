@@ -10,7 +10,7 @@ function showError(message) {
 
 async function api(path, options = {}) {
   const response = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    headers: { "Content-Type": "application/json; charset=utf-8", ...(options.headers || {}) },
     ...options,
   });
   const data = await response.json().catch(() => ({}));

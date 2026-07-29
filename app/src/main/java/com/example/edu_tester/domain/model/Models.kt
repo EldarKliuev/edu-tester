@@ -16,9 +16,16 @@ data class Test(
 data class TestSession(
     val id: String,
     val testId: String,
+    val testTitle: String,
     val port: Int,
     val startedAt: Long,
+    val endedAt: Long? = null,
     val isActive: Boolean,
+)
+
+data class SessionHistoryItem(
+    val session: TestSession,
+    val attemptCount: Int,
 )
 
 data class Answer(

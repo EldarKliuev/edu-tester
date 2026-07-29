@@ -9,6 +9,7 @@ import androidx.room.Relation
 import androidx.room.Transaction
 import com.example.edu_tester.data.local.entity.AttemptEntity
 import com.example.edu_tester.data.local.entity.QuestionEntity
+import com.example.edu_tester.data.local.entity.SessionEntity
 import com.example.edu_tester.data.local.entity.TestEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -16,6 +17,11 @@ data class TestWithQuestions(
     @Embedded val test: TestEntity,
     @Relation(parentColumn = "id", entityColumn = "testId")
     val questions: List<QuestionEntity>,
+)
+
+data class SessionWithAttemptCount(
+    @Embedded val session: SessionEntity,
+    val attemptCount: Int,
 )
 
 @Dao
@@ -79,4 +85,32 @@ interface AttemptDao {
         """
     )
     suspend fun countByName(sessionId: String, firstName: String, lastName: String): Int
+}
+
+@Dao
+interface SessionDao {
+    @Query(
+        """
+        SELECT s.*,
+               (SELECT COUNT(*) FROM attempts a WHERE a.sessionId = s.id) AS attemptCount
+        FROM sessions s
+        ORDER BY s.startedAt DESC
+        """
+    )
+    fun observeSessionsWithAttemptCount(): Flow<List<SessionWithAttemptCount>>
+
+    @Query("SELECT * FROM sessions WHERE id = :sessionId")
+    suspend fun getSession(sessionId: String): SessionEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertSession(session: SessionEntity)
+
+    @Query(
+        """
+        UPDATE sessions
+        SET isActive = 0, endedAt = :endedAt
+        WHERE id = :sessionId
+        """
+    )
+    suspend fun endSession(sessionId: String, endedAt: Long)
 }

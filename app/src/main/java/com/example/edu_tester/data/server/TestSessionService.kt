@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.content.pm.ServiceInfo
 import android.os.Binder
 import android.os.Build
@@ -18,10 +20,12 @@ import com.example.edu_tester.MainActivity
 import com.example.edu_tester.R
 import com.example.edu_tester.data.session.ActiveSessionState
 import com.example.edu_tester.domain.model.Test
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 
 class TestSessionService : Service() {
@@ -39,10 +43,14 @@ class TestSessionService : Service() {
         fun getService(): TestSessionService = this@TestSessionService
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        ensureNotificationChannel()
+    }
+
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        ensureNotificationChannel()
         when (intent?.action) {
             ACTION_STOP -> {
                 stopSessionInternal()
@@ -83,6 +91,9 @@ class TestSessionService : Service() {
             httpServer = server
 
             val active = container.activeSessionManager.start(test, port, baseUrl)
+            runBlocking(Dispatchers.IO) {
+                container.sessionRepository.saveSession(active.session)
+            }
             _runtime.value = SessionRuntime(active = active, port = port)
             _error.value = null
             Result.success(active)
@@ -104,9 +115,16 @@ class TestSessionService : Service() {
     }
 
     private fun stopSessionInternal(keepServiceAlive: Boolean = false) {
+        val container = (application as EduTesterApp).container
+        val sessionId = container.activeSessionManager.current()?.session?.id
         httpServer?.stop()
         httpServer = null
-        (application as EduTesterApp).container.activeSessionManager.stop()
+        container.activeSessionManager.stop()
+        if (sessionId != null) {
+            runBlocking(Dispatchers.IO) {
+                container.sessionRepository.endSession(sessionId, System.currentTimeMillis())
+            }
+        }
         _runtime.value = null
         if (!keepServiceAlive) {
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -114,9 +132,16 @@ class TestSessionService : Service() {
     }
 
     private fun cleanupAfterFailure() {
+        val container = (application as EduTesterApp).container
+        val sessionId = container.activeSessionManager.current()?.session?.id
         httpServer?.stop()
         httpServer = null
-        (application as EduTesterApp).container.activeSessionManager.stop()
+        container.activeSessionManager.stop()
+        if (sessionId != null) {
+            runBlocking(Dispatchers.IO) {
+                container.sessionRepository.endSession(sessionId, System.currentTimeMillis())
+            }
+        }
         _runtime.value = null
     }
 
@@ -136,6 +161,8 @@ class TestSessionService : Service() {
     }
 
     private fun promoteToForeground(detail: String) {
+        // Channel must exist before startForeground; startSession() can race ahead of onStartCommand.
+        ensureNotificationChannel()
         val notification = buildNotification(detail)
         ServiceCompat.startForeground(
             this,
@@ -160,9 +187,10 @@ class TestSessionService : Service() {
             .setContentTitle(getString(R.string.session_notification_title))
             .setContentText(getString(R.string.session_notification_text))
             .setStyle(NotificationCompat.BigTextStyle().bigText(detail))
-            .setSmallIcon(android.R.drawable.ic_menu_share)
+            .setSmallIcon(R.drawable.ic_session_notification)
             .setContentIntent(pending)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .build()
     }
 
@@ -180,9 +208,6 @@ class TestSessionService : Service() {
 
         fun startIntent(context: Context): Intent =
             Intent(context, TestSessionService::class.java)
-
-        fun stopIntent(context: Context): Intent =
-            Intent(context, TestSessionService::class.java).setAction(ACTION_STOP)
     }
 }
 
@@ -193,13 +218,13 @@ class SessionController(private val context: Context) {
     private var service: TestSessionService? = null
     private var bound = false
 
-    private val connection = object : android.content.ServiceConnection {
-        override fun onServiceConnected(name: android.content.ComponentName?, binder: android.os.IBinder?) {
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
             service = (binder as TestSessionService.LocalBinder).getService()
             bound = true
         }
 
-        override fun onServiceDisconnected(name: android.content.ComponentName?) {
+        override fun onServiceDisconnected(name: ComponentName?) {
             service = null
             bound = false
         }
@@ -222,8 +247,6 @@ class SessionController(private val context: Context) {
             service = null
         }
     }
-
-    fun getService(): TestSessionService? = service
 
     suspend fun awaitService(timeoutMs: Long = 3_000): TestSessionService? {
         if (service != null) return service

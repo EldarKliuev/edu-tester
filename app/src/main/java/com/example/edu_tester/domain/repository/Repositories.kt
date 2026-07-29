@@ -1,7 +1,9 @@
 package com.example.edu_tester.domain.repository
 
+import com.example.edu_tester.domain.model.SessionHistoryItem
 import com.example.edu_tester.domain.model.StudentAttempt
 import com.example.edu_tester.domain.model.Test
+import com.example.edu_tester.domain.model.TestSession
 import kotlinx.coroutines.flow.Flow
 
 interface TestRepository {
@@ -16,4 +18,11 @@ interface AttemptRepository {
     suspend fun getAttempts(sessionId: String): List<StudentAttempt>
     suspend fun saveAttempt(attempt: StudentAttempt)
     suspend fun hasSubmitted(sessionId: String, firstName: String, lastName: String): Boolean
+}
+
+interface SessionRepository {
+    fun observeSessionHistory(): Flow<List<SessionHistoryItem>>
+    suspend fun getSession(sessionId: String): TestSession?
+    suspend fun saveSession(session: TestSession)
+    suspend fun endSession(sessionId: String, endedAt: Long)
 }
