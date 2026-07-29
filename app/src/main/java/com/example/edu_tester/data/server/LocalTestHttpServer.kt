@@ -168,6 +168,17 @@ class LocalTestHttpServer(
     }
 
     private fun readJsonBody(session: IHTTPSession): JsonObject {
+        // NanoHTTPD treats application/json without charset as US-ASCII and replaces
+        // non-ASCII bytes with U+FFFD — force UTF-8 before parseBody decodes the body.
+        @Suppress("UNCHECKED_CAST")
+        val headers = session.headers as MutableMap<String, String>
+        val contentType = headers["content-type"]
+        if (contentType.isNullOrBlank()) {
+            headers["content-type"] = "application/json; charset=utf-8"
+        } else if (!contentType.contains("charset", ignoreCase = true)) {
+            headers["content-type"] = "$contentType; charset=utf-8"
+        }
+
         val files = HashMap<String, String>()
         session.parseBody(files)
         val body = files["postData"].orEmpty()
