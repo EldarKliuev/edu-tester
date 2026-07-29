@@ -43,10 +43,14 @@ class TestSessionService : Service() {
         fun getService(): TestSessionService = this@TestSessionService
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        ensureNotificationChannel()
+    }
+
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        ensureNotificationChannel()
         when (intent?.action) {
             ACTION_STOP -> {
                 stopSessionInternal()
@@ -157,6 +161,8 @@ class TestSessionService : Service() {
     }
 
     private fun promoteToForeground(detail: String) {
+        // Channel must exist before startForeground; startSession() can race ahead of onStartCommand.
+        ensureNotificationChannel()
         val notification = buildNotification(detail)
         ServiceCompat.startForeground(
             this,
@@ -181,9 +187,10 @@ class TestSessionService : Service() {
             .setContentTitle(getString(R.string.session_notification_title))
             .setContentText(getString(R.string.session_notification_text))
             .setStyle(NotificationCompat.BigTextStyle().bigText(detail))
-            .setSmallIcon(android.R.drawable.ic_menu_share)
+            .setSmallIcon(R.drawable.ic_session_notification)
             .setContentIntent(pending)
             .setOngoing(true)
+            .setOnlyAlertOnce(true)
             .build()
     }
 
